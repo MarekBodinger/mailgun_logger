@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  db:
+    image: postgres
+    networks:
+      - webnet
+    environment:
+      - POSTGRES_PASSWORD=logger
+      - POSTGRES_USER=logger
+      - POSTGRES_DATABASE=mailgun_logger
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  web:
+    image: jackjoe/mailgun_logger
+    depends_on:
+      - db
+    entrypoint: ["./wait-for", "db:5432", "--", "./start.sh"]
+    ports:
+      - "5050:5050"
+    networks:
+      - webnet
+    environment:
+      - "ML_DB_USER=logger"
+      - "ML_DB_PASSWORD=logger"
+      - "ML_DB_NAME=mailgun_logger"
+      - "ML_DB_HOST=db"
+
+networks:
+  webnet:
+    external: false
+
+volumes:
+  db_data: {}
